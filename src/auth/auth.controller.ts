@@ -1,5 +1,16 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UnauthorizedException,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
+
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -30,5 +41,11 @@ export class AuthController {
       throw new UnauthorizedException('Invalid email or password');
     }
     return this.authService.login(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() req): Promise<UserProfileDto> {
+    return this.authService.getProfile(req.user.userId);
   }
 }

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserProfileDto } from './dto/user-profile.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -57,5 +58,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP');
     }
     return { message: 'Your account has been successfully verified.' };
+  }
+
+  async getProfile(userId: number): Promise<UserProfileDto> {
+    const user = await this.usersService.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const { password, otp, otpExpiration, ...profile } = user;
+    return {
+      message: 'Profile fetched successfully',
+      data: profile,
+    };
   }
 }

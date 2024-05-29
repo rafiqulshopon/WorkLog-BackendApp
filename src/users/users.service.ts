@@ -43,6 +43,12 @@ export class UsersService {
     });
   }
 
+  async findUserById(id: number): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
   async generateOtp(email: string): Promise<string> {
     const user = await this.findUserByEmail(email);
     if (!user) {
