@@ -5,6 +5,7 @@ import { EmailService } from '../email/email.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
 import * as bcrypt from 'bcrypt';
+import { create } from 'handlebars';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +46,7 @@ export class AuthService {
 
     // Send OTP via email
     await this.emailService.sendVerificationEmail(
+      createdUser.firstName,
       createdUser.email,
       createdUser.otp,
     );
