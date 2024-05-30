@@ -1,11 +1,18 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
+import { PrismaService } from '../prisma/prisma.service';
+import { InviteUserDto } from './dto/invite-user.dto';
 import * as bcrypt from 'bcrypt';
-import { create } from 'handlebars';
+import * as crypto from 'crypto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +20,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private prisma: PrismaService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -41,10 +49,8 @@ export class AuthService {
   }
 
   async signup(user: CreateUserDto) {
-    // Create the user with OTP
     const createdUser = await this.usersService.createUser(user);
 
-    // Send OTP via email
     await this.emailService.sendVerificationEmail(
       createdUser.firstName,
       createdUser.email,
@@ -72,6 +78,88 @@ export class AuthService {
     return {
       message: 'Profile fetched successfully',
       data: profile,
+    };
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto, currentUser: any) {
+    if (currentUser.role !== 'admin') {
+      throw new UnauthorizedException('Only admins can invite users');
+    }
+
+    const existingUser = await this.usersService.findUserByEmail(
+      inviteUserDto.email,
+    );
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const existingInvitation = await this.prisma.invitation.findUnique({
+      where: { email: inviteUserDto.email },
+    });
+
+    if (existingInvitation) {
+      throw new ConflictException(
+        'An invitation with this email already exists',
+      );
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await this.prisma.invitation.create({
+      data: {
+        email: inviteUserDto.email,
+        role: inviteUserDto.role,
+        token,
+        expiresAt,
+      },
+    });
+
+    await this.emailService.sendInvitationEmail(inviteUserDto.email, token);
+
+    return { message: 'Invitation sent successfully' };
+  }
+
+  async registerInvitedUser(registerUserDto: RegisterUserDto) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token: registerUserDto.token },
+    });
+
+    if (!invitation || invitation.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired invitation token');
+    }
+
+    if (invitation.email !== registerUserDto.email) {
+      throw new ConflictException('Email does not match the invitation');
+    }
+
+    const createdUser = await this.usersService.createUser({
+      username: registerUserDto.username,
+      email: registerUserDto.email,
+      password: registerUserDto.password,
+      firstName: registerUserDto.firstName,
+      lastName: registerUserDto.lastName,
+      address: registerUserDto.address,
+      role: invitation.role,
+      verified: true,
+      otp: null,
+      otpExpiration: null,
+    });
+
+    await this.prisma.invitation.delete({
+      where: { token: registerUserDto.token },
+    });
+
+    return {
+      message: 'Registration successful',
+      data: {
+        id: createdUser.id,
+        username: createdUser.username,
+        email: createdUser.email,
+        firstName: createdUser.firstName,
+        lastName: createdUser.lastName,
+        role: createdUser.role,
+      },
     };
   }
 }

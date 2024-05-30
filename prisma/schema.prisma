@@ -27,3 +27,12 @@ model User {
   otpExpiration DateTime?
   createdAt     DateTime  @default(now())
 }
+
+model Invitation {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  role      String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

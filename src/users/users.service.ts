@@ -24,15 +24,19 @@ export class UsersService {
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    const otp = crypto.randomBytes(3).toString('hex');
-    const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
 
     return this.prisma.user.create({
       data: {
         ...data,
         password: hashedPassword,
-        otp,
-        otpExpiration,
+        otp:
+          data.otp === null
+            ? null
+            : data.otp || crypto.randomBytes(3).toString('hex'),
+        otpExpiration:
+          data.otpExpiration === null
+            ? null
+            : data.otpExpiration || new Date(Date.now() + 10 * 60 * 1000),
       },
     });
   }
