@@ -74,7 +74,7 @@ export class AuthController {
     }
   }
 
-  @Post('invite-register')
+  @Post('register')
   async registerInvitedUser(@Body() registerUserDto: RegisterUserDto) {
     try {
       return this.authService.registerInvitedUser(registerUserDto);
