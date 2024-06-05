@@ -4,14 +4,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { InviteUserDto } from './dto/invite-user.dto';
-import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
+
 import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
