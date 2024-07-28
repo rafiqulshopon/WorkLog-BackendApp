@@ -13,6 +13,7 @@ import { InviteUserDto } from './dto/invite-user.dto';
 import { EmailService } from '../email/email.service';
 import { UserRole } from './user-role.enum';
 import { UserProfileDto } from './dto/user-profile.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -149,5 +150,48 @@ export class UsersService {
       where: { email },
       data: { verified: true, otp: null, otpExpiration: null },
     });
+  }
+
+  async registerInvitedUser(registerUserDto: RegisterUserDto) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token: registerUserDto.token },
+    });
+
+    if (!invitation || invitation.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired invitation token');
+    }
+
+    if (invitation.email !== registerUserDto.email) {
+      throw new ConflictException('Email does not match the invitation');
+    }
+
+    const createdUser = await this.createUser({
+      username: registerUserDto.username,
+      email: registerUserDto.email,
+      password: registerUserDto.password,
+      firstName: registerUserDto.firstName,
+      lastName: registerUserDto.lastName,
+      address: registerUserDto.address,
+      role: invitation.role,
+      verified: true,
+      otp: null,
+      otpExpiration: null,
+    });
+
+    await this.prisma.invitation.delete({
+      where: { token: registerUserDto.token },
+    });
+
+    return {
+      message: 'Registration successful',
+      data: {
+        id: createdUser.id,
+        username: createdUser.username,
+        email: createdUser.email,
+        firstName: createdUser.firstName,
+        lastName: createdUser.lastName,
+        role: createdUser.role,
+      },
+    };
   }
 }

@@ -16,6 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Controller('users')
 export class UsersController {
@@ -42,6 +43,15 @@ export class UsersController {
       } else {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }
+    }
+  }
+
+  @Post('register')
+  async registerInvitedUser(@Body() registerUserDto: RegisterUserDto) {
+    try {
+      return this.userService.registerInvitedUser(registerUserDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
 }

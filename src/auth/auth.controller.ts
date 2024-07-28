@@ -1,14 +1,6 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UnauthorizedException,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { RegisterUserDto } from './dto/register-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -39,14 +31,5 @@ export class AuthController {
       throw new UnauthorizedException('Invalid email or password');
     }
     return this.authService.login(user);
-  }
-
-  @Post('register')
-  async registerInvitedUser(@Body() registerUserDto: RegisterUserDto) {
-    try {
-      return this.authService.registerInvitedUser(registerUserDto);
-    } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
-    }
   }
 }
