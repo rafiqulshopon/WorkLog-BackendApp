@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { EmailService } from '../email/email.service';
 import { UserRole } from './user-role.enum';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Injectable()
 export class UsersService {
@@ -59,6 +60,22 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { id },
     });
+  }
+
+  async getProfile(userId: number): Promise<UserProfileDto> {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    const profile = { ...user };
+    delete profile.password;
+    delete profile.otp;
+    delete profile.otpExpiration;
+    return {
+      message: 'Profile fetched successfully',
+      data: profile,
+    };
   }
 
   async inviteUser(inviteUserDto: InviteUserDto, currentUser: any) {

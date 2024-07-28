@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Post,
@@ -14,10 +15,17 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { InviteUserDto } from './dto/invite-user.dto';
+import { UserProfileDto } from './dto/user-profile.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getProfile(@Req() req): Promise<UserProfileDto> {
+    return this.userService.getProfile(req.user.userId);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
