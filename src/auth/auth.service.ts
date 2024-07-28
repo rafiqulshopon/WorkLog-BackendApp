@@ -5,13 +5,11 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserProfileDto } from './dto/user-profile.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { InviteUserDto } from './dto/invite-user.dto';
 
 import { RegisterUserDto } from './dto/register-user.dto';
 
@@ -84,45 +82,6 @@ export class AuthService {
       message: 'Profile fetched successfully',
       data: profile,
     };
-  }
-
-  async inviteUser(inviteUserDto: InviteUserDto, currentUser: any) {
-    if (currentUser.role !== 'admin') {
-      throw new UnauthorizedException('Only admins can invite users');
-    }
-
-    const existingUser = await this.usersService.findUserByEmail(
-      inviteUserDto.email,
-    );
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
-
-    const existingInvitation = await this.prisma.invitation.findUnique({
-      where: { email: inviteUserDto.email },
-    });
-
-    if (existingInvitation) {
-      throw new ConflictException(
-        'An invitation with this email already exists',
-      );
-    }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-
-    await this.prisma.invitation.create({
-      data: {
-        email: inviteUserDto.email,
-        role: inviteUserDto.role,
-        token,
-        expiresAt,
-      },
-    });
-
-    await this.emailService.sendInvitationEmail(inviteUserDto.email, token);
-
-    return { message: 'Invitation sent successfully' };
   }
 
   async registerInvitedUser(registerUserDto: RegisterUserDto) {

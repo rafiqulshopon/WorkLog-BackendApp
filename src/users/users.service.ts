@@ -2,15 +2,23 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { InviteUserDto } from './dto/invite-user.dto';
+import { EmailService } from '../email/email.service';
+import { UserRole } from './user-role.enum';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
     const existingUser = await this.prisma.user.findFirst({
@@ -51,6 +59,47 @@ export class UsersService {
     return this.prisma.user.findUnique({
       where: { id },
     });
+  }
+
+  async inviteUser(inviteUserDto: InviteUserDto, currentUser: any) {
+    if (currentUser.role !== 'admin') {
+      throw new UnauthorizedException('Only admins can invite users');
+    }
+
+    if (!Object.values(UserRole).includes(inviteUserDto.role)) {
+      throw new BadRequestException('Invalid user role');
+    }
+
+    const existingUser = await this.findUserByEmail(inviteUserDto.email);
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    const existingInvitation = await this.prisma.invitation.findUnique({
+      where: { email: inviteUserDto.email },
+    });
+
+    if (existingInvitation) {
+      throw new ConflictException(
+        'An invitation with this email already exists',
+      );
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    await this.prisma.invitation.create({
+      data: {
+        email: inviteUserDto.email,
+        role: inviteUserDto.role,
+        token,
+        expiresAt,
+      },
+    });
+
+    await this.emailService.sendInvitationEmail(inviteUserDto.email, token);
+
+    return { message: 'Invitation sent successfully' };
   }
 
   async generateOtp(email: string): Promise<string> {
