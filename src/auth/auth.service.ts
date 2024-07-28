@@ -29,7 +29,8 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const { password: userPassword, ...result } = user;
+    const result = { ...user };
+    delete result.password;
     return result;
   }
 
@@ -75,7 +76,10 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const { password, otp, otpExpiration, ...profile } = user;
+    const profile = { ...user };
+    delete profile.password;
+    delete profile.otp;
+    delete profile.otpExpiration;
     return {
       message: 'Profile fetched successfully',
       data: profile,
