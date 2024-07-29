@@ -6,6 +6,7 @@ class Profile {
   lastName: string;
   address?: string;
   role: string;
+  companyId: number;
 }
 
 export class UserProfileDto {

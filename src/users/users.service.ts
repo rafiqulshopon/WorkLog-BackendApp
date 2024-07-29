@@ -23,11 +23,16 @@ export class UsersService {
   ) {}
 
   async createUser(data: Prisma.UserCreateInput): Promise<User> {
-    const existingUser = await this.prisma.user.findFirst({
+    const existingUser = await this.prisma.userToCompany.findFirst({
       where: {
-        OR: [{ email: data.email }, { username: data.username }],
+        companyId: data.companyId,
+        user: {
+          email: data.email,
+        },
       },
     });
+
+    console.log({ existingUser });
 
     if (existingUser) {
       throw new ConflictException('Username or email already exists');
@@ -52,7 +57,7 @@ export class UsersService {
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    return this.prisma.user.findFirst({
       where: { email },
     });
   }
@@ -88,18 +93,43 @@ export class UsersService {
       throw new BadRequestException('Invalid user role');
     }
 
-    const existingUser = await this.findUserByEmail(inviteUserDto.email);
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
+    const company = await this.prisma.company.findUnique({
+      where: { id: inviteUserDto.companyId },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Invalid company ID');
     }
 
-    const existingInvitation = await this.prisma.invitation.findUnique({
+    const existingUser = await this.prisma.user.findFirst({
       where: { email: inviteUserDto.email },
+    });
+
+    if (existingUser) {
+      const existingUserInCompany = await this.prisma.userToCompany.findFirst({
+        where: {
+          userId: existingUser.id,
+          companyId: inviteUserDto.companyId,
+        },
+      });
+
+      if (existingUserInCompany) {
+        throw new ConflictException(
+          'User with this email already exists in the company',
+        );
+      }
+    }
+
+    const existingInvitation = await this.prisma.invitation.findFirst({
+      where: {
+        email: inviteUserDto.email,
+        companyId: inviteUserDto.companyId,
+      },
     });
 
     if (existingInvitation) {
       throw new ConflictException(
-        'An invitation with this email already exists',
+        'An invitation with this email already exists for this company',
       );
     }
 
@@ -112,10 +142,15 @@ export class UsersService {
         role: inviteUserDto.role,
         token,
         expiresAt,
+        companyId: inviteUserDto.companyId,
       },
     });
 
-    await this.emailService.sendInvitationEmail(inviteUserDto.email, token);
+    await this.emailService.sendInvitationEmail(
+      inviteUserDto.email,
+      token,
+      company.slug,
+    );
 
     return { message: 'Invitation sent successfully' };
   }
@@ -130,7 +165,7 @@ export class UsersService {
     const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
 
     await this.prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: { otp, otpExpiration },
     });
 
@@ -138,7 +173,7 @@ export class UsersService {
   }
 
   async verifyOtp(email: string, otp: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findFirst({
       where: { email },
     });
 
@@ -147,7 +182,7 @@ export class UsersService {
     }
 
     return this.prisma.user.update({
-      where: { email },
+      where: { id: user.id },
       data: { verified: true, otp: null, otpExpiration: null },
     });
   }
@@ -155,6 +190,7 @@ export class UsersService {
   async registerInvitedUser(registerUserDto: RegisterUserDto) {
     const invitation = await this.prisma.invitation.findUnique({
       where: { token: registerUserDto.token },
+      include: { company: true },
     });
 
     if (!invitation || invitation.expiresAt < new Date()) {
@@ -163,6 +199,12 @@ export class UsersService {
 
     if (invitation.email !== registerUserDto.email) {
       throw new ConflictException('Email does not match the invitation');
+    }
+
+    if (invitation.companyId !== registerUserDto.companyId) {
+      throw new ConflictException(
+        'The company ID does not match the invitation',
+      );
     }
 
     const createdUser = await this.createUser({
@@ -176,6 +218,14 @@ export class UsersService {
       verified: true,
       otp: null,
       otpExpiration: null,
+      companyId: registerUserDto.companyId,
+    });
+
+    await this.prisma.userToCompany.create({
+      data: {
+        userId: createdUser.id,
+        companyId: invitation.companyId,
+      },
     });
 
     await this.prisma.invitation.delete({

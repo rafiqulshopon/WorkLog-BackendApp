@@ -21,13 +21,18 @@ export class EmailService {
     });
   }
 
-  async sendInvitationEmail(email: string, token: string): Promise<void> {
+  async sendInvitationEmail(
+    email: string,
+    token: string,
+    slug: string,
+  ): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
       subject: 'You are Invited!',
       template: 'invitation',
       context: {
         token,
+        slug,
       },
     });
   }

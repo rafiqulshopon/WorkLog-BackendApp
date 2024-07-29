@@ -16,7 +16,7 @@ datasource db {
 model User {
   id               Int             @id @default(autoincrement())
   username         String          @unique
-  email            String          @unique
+  email            String
   password         String
   firstName        String
   lastName         String
@@ -26,17 +26,20 @@ model User {
   otp              String?
   otpExpiration    DateTime?
   createdAt        DateTime        @default(now())
+  companyId        Int?
   companies        UserToCompany[]
   createdCompanies Company[]       @relation("CreatedCompanies")
 }
 
 model Invitation {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
+  email     String
   role      String
   token     String   @unique
+  companyId Int?
   expiresAt DateTime
   createdAt DateTime @default(now())
+  company   Company? @relation(fields: [companyId], references: [id])
 }
 
 model Company {
@@ -59,7 +62,8 @@ model Company {
   createdBy       User?     @relation("CreatedCompanies", fields: [createdByUserId], references: [id])
   createdByUserId Int?
 
-  users UserToCompany[]
+  users      UserToCompany[]
+  Invitation Invitation[]
 }
 
 model UserToCompany {
