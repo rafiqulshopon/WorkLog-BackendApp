@@ -106,4 +106,32 @@ export class CompanyService {
 
     return { message: `Company with ID ${id} successfully deleted` };
   }
+
+  async updateCompanyStatus(
+    id: number,
+    isActive: boolean,
+  ): Promise<{ message: string }> {
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    if (company.isActive === isActive) {
+      throw new ConflictException(
+        `Company is already ${isActive ? 'active' : 'inactive'}`,
+      );
+    }
+
+    await this.prisma.company.update({
+      where: { id },
+      data: { isActive },
+    });
+
+    return {
+      message: `Company status updated to ${isActive ? 'active' : 'inactive'}`,
+    };
+  }
 }

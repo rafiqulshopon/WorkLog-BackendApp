@@ -8,6 +8,7 @@ import {
   Query,
   Param,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -23,8 +24,6 @@ export class CompanyController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async getCompanies(@Query() query: GetCompaniesDto) {
-    console.log(query);
-
     return this.companyService.getCompanies(query);
   }
 
@@ -46,5 +45,14 @@ export class CompanyController {
   async deleteCompanyById(@Param('id') id: string) {
     const companyId = parseInt(id, 10);
     return this.companyService.deleteCompanyById(companyId);
+  }
+
+  @Patch(':id/status')
+  async updateCompanyStatus(
+    @Param('id') id: string,
+    @Body('isActive') isActive: boolean,
+  ) {
+    const companyId = parseInt(id, 10);
+    return this.companyService.updateCompanyStatus(companyId, isActive);
   }
 }
