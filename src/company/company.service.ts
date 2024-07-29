@@ -90,4 +90,20 @@ export class CompanyService {
       },
     });
   }
+
+  async deleteCompanyById(id: number): Promise<{ message: string }> {
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    await this.prisma.company.delete({
+      where: { id },
+    });
+
+    return { message: `Company with ID ${id} successfully deleted` };
+  }
 }

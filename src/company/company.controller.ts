@@ -7,6 +7,7 @@ import {
   Get,
   Query,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -39,5 +40,11 @@ export class CompanyController {
   @Post()
   async create(@Body() createCompanyDto: CreateCompanyDto, @Req() req) {
     return this.companyService.createCompany(createCompanyDto, req.user.userId);
+  }
+
+  @Delete(':id')
+  async deleteCompanyById(@Param('id') id: string) {
+    const companyId = parseInt(id, 10);
+    return this.companyService.deleteCompanyById(companyId);
   }
 }
