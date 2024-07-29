@@ -21,6 +21,11 @@ import { GetCompaniesDto } from './dto/get-companies.dto';
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
+  @Get('check-slug')
+  async checkSlugAvailability(@Query('slug') slug: string) {
+    return this.companyService.checkSlugAvailability(slug);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   async getCompanies(@Query() query: GetCompaniesDto) {
