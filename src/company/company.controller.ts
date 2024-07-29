@@ -6,6 +6,7 @@ import {
   UseGuards,
   Get,
   Query,
+  Param,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -24,6 +25,13 @@ export class CompanyController {
     console.log(query);
 
     return this.companyService.getCompanies(query);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getCompanyById(@Param('id') id: string) {
+    const companyId = parseInt(id, 10);
+    return this.companyService.getCompanyById(companyId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

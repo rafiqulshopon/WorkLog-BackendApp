@@ -1,4 +1,8 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { Company } from '@prisma/client';
@@ -44,6 +48,18 @@ export class CompanyService {
       skip: skipInt,
       take: takeInt,
     };
+  }
+
+  async getCompanyById(id: number): Promise<Company> {
+    const company = await this.prisma.company.findUnique({
+      where: { id },
+    });
+
+    if (!company) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    return company;
   }
 
   async createCompany(
