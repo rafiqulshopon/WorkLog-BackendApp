@@ -32,8 +32,6 @@ export class UsersService {
       },
     });
 
-    console.log({ existingUser });
-
     if (existingUser) {
       throw new ConflictException('Username or email already exists');
     }
