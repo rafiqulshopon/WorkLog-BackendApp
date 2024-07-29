@@ -63,12 +63,11 @@ model Company {
 }
 
 model UserToCompany {
-  id        Int @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   userId    Int
   companyId Int
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
 }
