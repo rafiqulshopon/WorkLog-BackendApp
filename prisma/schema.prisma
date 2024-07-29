@@ -22,13 +22,12 @@ model User {
   lastName  String
 
   address       String?
-  role          String    @default("user")
-  verified      Boolean   @default(false)
+  role          String          @default("user")
+  verified      Boolean         @default(false)
   otp           String?
   otpExpiration DateTime?
-  createdAt     DateTime  @default(now())
-  companyId     Int?
-  company       Company?  @relation(fields: [companyId], references: [id])
+  createdAt     DateTime        @default(now())
+  companies     UserToCompany[]
 }
 
 model Invitation {
@@ -57,5 +56,17 @@ model Company {
   industry    String?
   size        String?
   isActive    Boolean   @default(true)
-  User        User[]
+
+  users UserToCompany[]
+}
+
+model UserToCompany {
+  id        Int @id @default(autoincrement())
+  userId    Int
+  companyId Int
+
+  user    User    @relation(fields: [userId], references: [id])
+  company Company @relation(fields: [companyId], references: [id])
+
+  @@unique([userId, companyId])
 }
