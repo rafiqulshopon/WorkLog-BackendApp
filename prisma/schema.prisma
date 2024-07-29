@@ -21,14 +21,14 @@ model User {
   firstName String
   lastName  String
 
-  address       String?
-  role          String          @default("user")
-  verified      Boolean         @default(false)
-  otp           String?
-  otpExpiration DateTime?
-  createdAt     DateTime        @default(now())
-  companies     UserToCompany[]
-  Company       Company[]
+  address          String?
+  role             String          @default("user")
+  verified         Boolean         @default(false)
+  otp              String?
+  otpExpiration    DateTime?
+  createdAt        DateTime        @default(now())
+  companies        UserToCompany[]
+  createdCompanies Company[]       @relation("CreatedCompanies")
 }
 
 model Invitation {
@@ -57,7 +57,7 @@ model Company {
   industry        String?
   size            String?
   isActive        Boolean   @default(true)
-  createdBy       User?     @relation(fields: [createdByUserId], references: [id])
+  createdBy       User?     @relation("CreatedCompanies", fields: [createdByUserId], references: [id])
   createdByUserId Int?
 
   users UserToCompany[]
@@ -68,8 +68,8 @@ model UserToCompany {
   userId    Int
   companyId Int
 
-  user    User    @relation(fields: [userId], references: [id])
-  company Company @relation(fields: [companyId], references: [id])
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
 }
