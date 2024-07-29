@@ -62,19 +62,21 @@ export class CompanyService {
     return company;
   }
 
-  async checkSlugAvailability(
-    slug: string,
-  ): Promise<{ available: boolean; status: string }> {
+  async checkSlugAvailability(slug: string): Promise<{
+    available: boolean;
+    status: string | null;
+    comapnyId: number | null;
+  }> {
     const company = await this.prisma.company.findUnique({
       where: { slug },
     });
 
     if (!company) {
-      return { available: true, status: 'N/A' };
+      return { available: true, status: null, comapnyId: null };
     }
 
     const status = company.isActive ? 'active' : 'disabled';
-    return { available: false, status };
+    return { available: false, status, comapnyId: company.id };
   }
 
   async createCompany(
