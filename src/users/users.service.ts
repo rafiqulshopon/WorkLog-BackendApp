@@ -30,10 +30,15 @@ export class UsersService {
           email: data.email,
         },
       },
+      include: {
+        user: true,
+      },
     });
 
     if (existingUser) {
-      throw new ConflictException('Username or email already exists');
+      throw new ConflictException(
+        `User with email ${data.email} already exists in the company.`,
+      );
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -54,9 +59,15 @@ export class UsersService {
     });
   }
 
-  async findUserByEmail(email: string): Promise<User | null> {
+  async findUserByEmail(
+    email: string,
+    companyId: number,
+  ): Promise<User | null> {
     return this.prisma.user.findFirst({
-      where: { email },
+      where: {
+        email,
+        companyId,
+      },
     });
   }
 
@@ -153,8 +164,8 @@ export class UsersService {
     return { message: 'Invitation sent successfully' };
   }
 
-  async generateOtp(email: string): Promise<string> {
-    const user = await this.findUserByEmail(email);
+  async generateOtp(email: string, companyId: number): Promise<string> {
+    const user = await this.findUserByEmail(email, companyId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -170,10 +181,21 @@ export class UsersService {
     return otp;
   }
 
-  async verifyOtp(email: string, otp: string): Promise<User | null> {
+  async verifyOtp(
+    email: string,
+    otp: string,
+    companyId: number,
+  ): Promise<User | null> {
     const user = await this.prisma.user.findFirst({
-      where: { email },
+      where: {
+        email,
+        companyId,
+      },
     });
+
+    if (user.companyId !== companyId) {
+      throw new UnauthorizedException('Invalid company ID');
+    }
 
     if (!user || user.otp !== otp || user.otpExpiration <= new Date()) {
       throw new NotFoundException('Invalid OTP or OTP has expired');

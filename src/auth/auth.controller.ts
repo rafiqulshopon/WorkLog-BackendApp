@@ -1,6 +1,8 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { VerifyOtpDto } from './dto/verfiy-user.dto';
+import { ValidateLoginUserDto } from './dto/validate-login-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -12,24 +14,17 @@ export class AuthController {
   }
 
   @Post('verify')
-  async verify(@Body() verifyOtpDto: any) {
-    const { email, otp } = verifyOtpDto;
-    const user = await this.authService.verifyOtp(email, otp);
-    if (!user) {
-      throw new UnauthorizedException('Invalid OTP');
-    }
-    return user;
+  async verify(@Body() verifyOtpDto: VerifyOtpDto) {
+    const { email, otp, companyId } = verifyOtpDto;
+    return this.authService.verifyOtp(email, otp, companyId);
   }
 
   @Post('login')
-  async login(@Body() loginUserDto: any) {
-    const user = await this.authService.validateUser(
-      loginUserDto.email,
-      loginUserDto.password,
-    );
-    if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-    return this.authService.login(user);
+  async login(
+    @Body()
+    loginUserDto: ValidateLoginUserDto,
+  ) {
+    const { email, password, companyId } = loginUserDto;
+    return this.authService.handleUserLogin(email, password, companyId);
   }
 }

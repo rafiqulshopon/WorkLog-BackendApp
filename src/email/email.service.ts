@@ -9,6 +9,7 @@ export class EmailService {
     firstName: string,
     email: string,
     otp: string,
+    slug: string,
   ): Promise<void> {
     await this.mailerService.sendMail({
       to: email,
@@ -17,6 +18,7 @@ export class EmailService {
       context: {
         firstName,
         otp,
+        slug,
       },
     });
   }
