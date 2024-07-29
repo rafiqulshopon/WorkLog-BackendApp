@@ -14,18 +14,21 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  username      String    @unique
-  email         String    @unique
-  password      String
-  firstName     String
-  lastName      String
+  id        Int    @id @default(autoincrement())
+  username  String @unique
+  email     String @unique
+  password  String
+  firstName String
+  lastName  String
+
   address       String?
   role          String    @default("user")
   verified      Boolean   @default(false)
   otp           String?
   otpExpiration DateTime?
   createdAt     DateTime  @default(now())
+  companyId     Int?
+  company       Company?  @relation(fields: [companyId], references: [id])
 }
 
 model Invitation {
@@ -35,4 +38,24 @@ model Invitation {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model Company {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
+  website     String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  logo        String?
+  description String?
+  foundedAt   DateTime?
+  industry    String?
+  size        String?
+  isActive    Boolean   @default(true)
+  User        User[]
 }
