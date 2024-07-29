@@ -71,14 +71,14 @@ export class UsersService {
     });
   }
 
-  async findUserById(id: number): Promise<User | null> {
+  async findUserById(id: number, companyId: number): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { id },
+      where: { id, companyId },
     });
   }
 
-  async getProfile(userId: number): Promise<UserProfileDto> {
-    const user = await this.findUserById(userId);
+  async getProfile(userId: number, companyId: number): Promise<UserProfileDto> {
+    const user = await this.findUserById(userId, companyId);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
