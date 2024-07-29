@@ -5,14 +5,17 @@ import {
   IsEmail,
   IsInt,
   IsDate,
+  IsBoolean,
 } from 'class-validator';
 
-export class CreateCompanyDto {
+export class UpdateCompanyDto {
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
+  @IsOptional()
   @IsString()
-  slug: string;
+  slug?: string;
 
   @IsOptional()
   @IsUrl()
@@ -61,4 +64,8 @@ export class CreateCompanyDto {
   @IsOptional()
   @IsInt()
   size?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

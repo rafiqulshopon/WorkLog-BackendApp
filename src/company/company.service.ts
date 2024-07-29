@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { Company } from '@prisma/client';
 import { GetCompaniesDto } from './dto/get-companies.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
 
 @Injectable()
 export class CompanyService {
@@ -98,7 +99,6 @@ export class CompanyService {
     return this.prisma.company.create({
       data: {
         ...createCompanyDto,
-        size: createCompanyDto.size.toString(),
         createdBy: {
           connect: {
             id: userId,
@@ -122,6 +122,39 @@ export class CompanyService {
     });
 
     return { message: `Company with ID ${id} successfully deleted` };
+  }
+
+  async updateCompanyInfo(
+    id: number,
+    updateCompanyDto: UpdateCompanyDto,
+  ): Promise<Company> {
+    const existingCompany = await this.prisma.company.findUnique({
+      where: { id },
+    });
+
+    if (!existingCompany) {
+      throw new NotFoundException(`Company with ID ${id} not found`);
+    }
+
+    if (
+      updateCompanyDto.slug &&
+      updateCompanyDto.slug !== existingCompany.slug
+    ) {
+      const slugExists = await this.prisma.company.findUnique({
+        where: { slug: updateCompanyDto.slug },
+      });
+
+      if (slugExists) {
+        throw new ConflictException('Slug is already taken');
+      }
+    }
+
+    const updatedCompany = await this.prisma.company.update({
+      where: { id },
+      data: updateCompanyDto,
+    });
+
+    return updatedCompany;
   }
 
   async updateCompanyStatus(

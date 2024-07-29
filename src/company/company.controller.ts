@@ -16,6 +16,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { GetCompaniesDto } from './dto/get-companies.dto';
+import { UpdateCompanyDto } from './dto/update-company.dto';
+import { Company } from '@prisma/client';
 
 @Controller('companies')
 export class CompanyController {
@@ -50,6 +52,15 @@ export class CompanyController {
   async deleteCompanyById(@Param('id') id: string) {
     const companyId = parseInt(id, 10);
     return this.companyService.deleteCompanyById(companyId);
+  }
+
+  @Patch(':id')
+  async updateCompany(
+    @Param('id') id: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ): Promise<Company> {
+    const companyId = parseInt(id, 10);
+    return this.companyService.updateCompanyInfo(companyId, updateCompanyDto);
   }
 
   @Patch(':id/status')
