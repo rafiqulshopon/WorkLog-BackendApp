@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsEnum, IsInt } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsEnum } from 'class-validator';
 import { UserRole } from '../user-role.enum';
 
 export class InviteUserDto {
@@ -8,8 +8,4 @@ export class InviteUserDto {
   @IsNotEmpty()
   @IsEnum(UserRole)
   role: UserRole;
-
-  @IsNotEmpty()
-  @IsInt()
-  companyId: number;
 }

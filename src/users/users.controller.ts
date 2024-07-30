@@ -21,11 +21,21 @@ export class UsersController {
   @Roles('admin')
   @Post('invite')
   async inviteUser(@Body() inviteUserDto: InviteUserDto, @Req() req) {
-    return this.userService.inviteUser(inviteUserDto, req.user);
+    return this.userService.inviteUser(
+      inviteUserDto,
+      req.user,
+      req.user.companyId,
+    );
   }
 
   @Post('register')
-  async registerInvitedUser(@Body() registerUserDto: RegisterUserDto) {
-    return this.userService.registerInvitedUser(registerUserDto);
+  async registerInvitedUser(
+    @Body() registerUserDto: RegisterUserDto,
+    @Req() req,
+  ) {
+    return this.userService.registerInvitedUser(
+      registerUserDto,
+      req.user.companyId,
+    );
   }
 }

@@ -93,7 +93,11 @@ export class UsersService {
     };
   }
 
-  async inviteUser(inviteUserDto: InviteUserDto, currentUser: any) {
+  async inviteUser(
+    inviteUserDto: InviteUserDto,
+    currentUser: any,
+    companyId: number,
+  ) {
     if (currentUser.role !== 'admin') {
       throw new UnauthorizedException('Only admins can invite users');
     }
@@ -103,7 +107,7 @@ export class UsersService {
     }
 
     const company = await this.prisma.company.findUnique({
-      where: { id: inviteUserDto.companyId },
+      where: { id: companyId },
     });
 
     if (!company) {
@@ -118,7 +122,7 @@ export class UsersService {
       const existingUserInCompany = await this.prisma.userToCompany.findFirst({
         where: {
           userId: existingUser.id,
-          companyId: inviteUserDto.companyId,
+          companyId,
         },
       });
 
@@ -132,7 +136,7 @@ export class UsersService {
     const existingInvitation = await this.prisma.invitation.findFirst({
       where: {
         email: inviteUserDto.email,
-        companyId: inviteUserDto.companyId,
+        companyId,
       },
     });
 
@@ -151,7 +155,7 @@ export class UsersService {
         role: inviteUserDto.role,
         token,
         expiresAt,
-        companyId: inviteUserDto.companyId,
+        companyId,
       },
     });
 
@@ -207,7 +211,10 @@ export class UsersService {
     });
   }
 
-  async registerInvitedUser(registerUserDto: RegisterUserDto) {
+  async registerInvitedUser(
+    registerUserDto: RegisterUserDto,
+    companyId: number,
+  ) {
     const invitation = await this.prisma.invitation.findUnique({
       where: { token: registerUserDto.token },
       include: { company: true },
@@ -221,7 +228,7 @@ export class UsersService {
       throw new ConflictException('Email does not match the invitation');
     }
 
-    if (invitation.companyId !== registerUserDto.companyId) {
+    if (invitation.companyId !== companyId) {
       throw new ConflictException(
         'The company ID does not match the invitation',
       );
@@ -238,13 +245,13 @@ export class UsersService {
       verified: true,
       otp: null,
       otpExpiration: null,
-      companyId: registerUserDto.companyId,
+      companyId,
     });
 
     await this.prisma.userToCompany.create({
       data: {
         userId: createdUser.id,
-        companyId: invitation.companyId,
+        companyId,
       },
     });
 
