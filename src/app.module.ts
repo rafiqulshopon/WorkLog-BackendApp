@@ -7,6 +7,7 @@ import { EmailModule } from './email/email.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CompanyModule } from './company/company.module';
+import { ClientsModule } from './clients/clients.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CompanyModule } from './company/company.module';
     PrismaModule,
     EmailModule,
     CompanyModule,
+    ClientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

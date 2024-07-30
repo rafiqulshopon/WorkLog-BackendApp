@@ -43,9 +43,9 @@ model Invitation {
 }
 
 model Company {
-  id              Int       @id @default(autoincrement())
-  name            String    @unique
-  slug            String    @unique
+  id              Int             @id @default(autoincrement())
+  name            String          @unique
+  slug            String          @unique
   website         String?
   email           String?
   phone           String?
@@ -58,12 +58,12 @@ model Company {
   foundedAt       DateTime?
   industry        String?
   size            String?
-  isActive        Boolean   @default(true)
-  createdBy       User?     @relation("CreatedCompanies", fields: [createdByUserId], references: [id])
+  isActive        Boolean         @default(true)
+  createdBy       User?           @relation("CreatedCompanies", fields: [createdByUserId], references: [id])
   createdByUserId Int?
-
-  users      UserToCompany[]
-  Invitation Invitation[]
+  users           UserToCompany[]
+  Invitation      Invitation[]
+  Client          Client[]
 }
 
 model UserToCompany {
@@ -74,4 +74,21 @@ model UserToCompany {
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, companyId])
+}
+
+model Client {
+  id                  Int      @id @default(autoincrement())
+  name                String
+  primaryContactName  String
+  primaryContactEmail String?
+  primaryContactPhone String?
+  companyEmail        String?
+  documents           String[]
+  notes               String?
+  companyId           Int
+  company             Company  @relation(fields: [companyId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([primaryContactEmail, companyEmail])
 }
