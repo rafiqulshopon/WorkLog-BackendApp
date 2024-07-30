@@ -9,6 +9,7 @@ import {
   Param,
   Delete,
   Patch,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -36,9 +37,8 @@ export class CompanyController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  async getCompanyById(@Param('id') id: string) {
-    const companyId = parseInt(id, 10);
-    return this.companyService.getCompanyById(companyId);
+  async getCompanyById(@Param('id', ParseIntPipe) id: number) {
+    return this.companyService.getCompanyById(id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,26 +49,23 @@ export class CompanyController {
   }
 
   @Delete(':id')
-  async deleteCompanyById(@Param('id') id: string) {
-    const companyId = parseInt(id, 10);
-    return this.companyService.deleteCompanyById(companyId);
+  async deleteCompanyById(@Param('id', ParseIntPipe) id: number) {
+    return this.companyService.deleteCompanyById(id);
   }
 
   @Patch(':id')
   async updateCompany(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateCompanyDto: UpdateCompanyDto,
   ): Promise<Company> {
-    const companyId = parseInt(id, 10);
-    return this.companyService.updateCompanyInfo(companyId, updateCompanyDto);
+    return this.companyService.updateCompanyInfo(id, updateCompanyDto);
   }
 
   @Patch(':id/status')
   async updateCompanyStatus(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body('isActive') isActive: boolean,
   ) {
-    const companyId = parseInt(id, 10);
-    return this.companyService.updateCompanyStatus(companyId, isActive);
+    return this.companyService.updateCompanyStatus(id, isActive);
   }
 }

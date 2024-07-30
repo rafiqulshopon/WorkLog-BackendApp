@@ -6,10 +6,67 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClientDto } from './dto/create-client.dto';
+import { GetClientsDto } from './dto/get-clients.dto';
 
 @Injectable()
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getAllClients(query: GetClientsDto) {
+    const {
+      companyId,
+      search,
+      primaryContactEmail,
+      primaryContactPhone,
+      skip = '0',
+      take = '10',
+    } = query;
+
+    const skipInt = parseInt(skip as string, 10);
+    const takeInt = parseInt(take as string, 10);
+    const companyIdInt = parseInt(companyId, 10);
+
+    const where: any = { companyId: companyIdInt };
+
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { primaryContactName: { contains: search, mode: 'insensitive' } },
+        { notes: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (primaryContactEmail) {
+      where.primaryContactEmail = {
+        contains: primaryContactEmail,
+        mode: 'insensitive',
+      };
+    }
+
+    if (primaryContactPhone) {
+      where.primaryContactPhone = {
+        contains: primaryContactPhone,
+        mode: 'insensitive',
+      };
+    }
+
+    const [clients, total] = await Promise.all([
+      this.prisma.client.findMany({
+        where,
+        skip: skipInt,
+        take: takeInt,
+        orderBy: { name: 'asc' },
+      }),
+      this.prisma.client.count({ where }),
+    ]);
+
+    return {
+      data: clients,
+      total,
+      skip: skipInt,
+      take: takeInt,
+    };
+  }
 
   async createClient(createClientDto: CreateClientDto) {
     const { companyId, ...clientData } = createClientDto;
