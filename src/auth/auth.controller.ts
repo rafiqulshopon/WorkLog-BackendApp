@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyOtpDto } from './dto/verfiy-user.dto';
 import { ValidateLoginUserDto } from './dto/validate-login-user.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,5 +27,11 @@ export class AuthController {
   ) {
     const { email, password, companyId } = loginUserDto;
     return this.authService.handleUserLogin(email, password, companyId);
+  }
+
+  @Post('refresh-token')
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    const { refreshToken } = refreshTokenDto;
+    return this.authService.refreshAccessToken(refreshToken);
   }
 }

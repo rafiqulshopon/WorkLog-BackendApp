@@ -49,17 +49,16 @@ export class AuthService {
         companyId,
       };
 
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
       return {
         message: 'Login successful',
-        access_token: this.jwtService.sign(payload),
+        access_token: accessToken,
+        refresh_token: refreshToken,
         user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role,
-          companyId: user.companyId,
         },
       };
     } catch (error) {
@@ -114,5 +113,28 @@ export class AuthService {
     }
 
     return { message: 'Your account has been successfully verified.' };
+  }
+
+  async refreshAccessToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken);
+      const newAccessToken = this.jwtService.sign(
+        {
+          email: payload.email,
+          userId: payload.userId,
+          role: payload.role,
+          companyId: payload.companyId,
+        },
+        { expiresIn: '1h' },
+      );
+      return {
+        message: 'Access token refreshed successfully',
+        data: {
+          access_token: newAccessToken,
+        },
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
   }
 }
