@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { GetClientsDto } from './dto/get-clients.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientsService {
@@ -21,8 +22,6 @@ export class ClientsService {
     const { search, primaryContactEmail, primaryContactPhone } = query;
 
     const where: any = { companyId };
-
-    console.log({ companyId });
 
     if (search) {
       where.OR = [
@@ -76,7 +75,10 @@ export class ClientsService {
       throw new BadRequestException('Client not found');
     }
 
-    return client;
+    return {
+      message: 'Client retrieved successfully',
+      data: client,
+    };
   }
 
   async createClient(createClientDto: CreateClientDto, companyId: number) {
@@ -98,7 +100,7 @@ export class ClientsService {
         },
       });
 
-      return { message: 'Client created successfully', client };
+      return { message: 'Client created successfully', data: client };
     } catch (error) {
       this.handleCreateClientError(error);
     }
@@ -149,6 +151,40 @@ export class ClientsService {
       },
     });
 
-    return { message: 'Client deleted successfully' };
+    return {
+      message: 'Client deleted successfully',
+      data: null,
+    };
+  }
+
+  async updateClient(
+    id: number,
+    updateClientDto: UpdateClientDto,
+    companyId: number,
+  ) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id,
+        companyId,
+      },
+    });
+
+    if (!client) {
+      throw new BadRequestException('Client not found');
+    }
+
+    const updatedClient = await this.prisma.client.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updateClientDto,
+      },
+    });
+
+    return {
+      message: 'Client updated successfully',
+      data: updatedClient,
+    };
   }
 }

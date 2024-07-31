@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Param,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -16,6 +17,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { GetClientsDto } from './dto/get-clients.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Controller('clients')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -49,6 +51,20 @@ export class ClientsController {
   async createClient(@Body() createClientDto: CreateClientDto, @Req() req) {
     return this.clientsService.createClient(
       createClientDto,
+      req.user.companyId,
+    );
+  }
+
+  @Patch(':id')
+  @Roles('admin')
+  async updateClient(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateClientDto: UpdateClientDto,
+    @Req() req,
+  ) {
+    return this.clientsService.updateClient(
+      id,
+      updateClientDto,
       req.user.companyId,
     );
   }
