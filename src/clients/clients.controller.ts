@@ -7,6 +7,8 @@ import {
   Req,
   UseGuards,
   ParseIntPipe,
+  Param,
+  Delete,
 } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
@@ -28,14 +30,18 @@ export class ClientsController {
     @Query() query: GetClientsDto,
     @Req() req,
   ) {
-    console.log({ query });
-
     return this.clientsService.getAllClients(
       query,
       req.user.companyId,
       skip,
       take,
     );
+  }
+
+  @Get(':id')
+  @Roles('admin')
+  async getClientById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.clientsService.getClientById(id, req.user.companyId);
   }
 
   @Post()
@@ -45,5 +51,11 @@ export class ClientsController {
       createClientDto,
       req.user.companyId,
     );
+  }
+
+  @Delete(':id')
+  @Roles('admin')
+  async deleteClientById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.clientsService.deleteClientById(id, req.user.companyId);
   }
 }

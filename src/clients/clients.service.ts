@@ -64,6 +64,21 @@ export class ClientsService {
     };
   }
 
+  async getClientById(id: number, companyId: number) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id,
+        companyId,
+      },
+    });
+
+    if (!client) {
+      throw new BadRequestException('Client not found');
+    }
+
+    return client;
+  }
+
   async createClient(createClientDto: CreateClientDto, companyId: number) {
     const { ...clientData } = createClientDto;
 
@@ -113,5 +128,27 @@ export class ClientsService {
     throw new InternalServerErrorException(
       'An error occurred while processing your request.',
     );
+  }
+
+  async deleteClientById(id: number, companyId: number) {
+    const client = await this.prisma.client.findFirst({
+      where: {
+        id,
+        companyId,
+      },
+    });
+
+    if (!client) {
+      throw new BadRequestException('Client not found');
+    }
+
+    await this.prisma.client.delete({
+      where: {
+        id,
+        companyId,
+      },
+    });
+
+    return { message: 'Client deleted successfully' };
   }
 }
