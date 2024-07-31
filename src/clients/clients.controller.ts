@@ -16,8 +16,8 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { GetClientsDto } from './dto/get-clients.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
+import { GetClientsDto } from './dto/get-clients.dto';
 
 @Controller('clients')
 @UseGuards(JwtAuthGuard, RolesGuard)
