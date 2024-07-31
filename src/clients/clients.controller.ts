@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -13,13 +22,28 @@ export class ClientsController {
 
   @Get()
   @Roles('admin')
-  async getAllClients(@Query() query: GetClientsDto) {
-    return this.clientsService.getAllClients(query);
+  async getAllClients(
+    @Query('skip', new ParseIntPipe({ optional: true })) skip: number = 0,
+    @Query('take', new ParseIntPipe({ optional: true })) take: number = 10,
+    @Query() query: GetClientsDto,
+    @Req() req,
+  ) {
+    console.log({ query });
+
+    return this.clientsService.getAllClients(
+      query,
+      req.user.companyId,
+      skip,
+      take,
+    );
   }
 
   @Post()
   @Roles('admin')
-  async createClient(@Body() createClientDto: CreateClientDto) {
-    return this.clientsService.createClient(createClientDto);
+  async createClient(@Body() createClientDto: CreateClientDto, @Req() req) {
+    return this.clientsService.createClient(
+      createClientDto,
+      req.user.companyId,
+    );
   }
 }

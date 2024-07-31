@@ -12,21 +12,17 @@ import { GetClientsDto } from './dto/get-clients.dto';
 export class ClientsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllClients(query: GetClientsDto) {
-    const {
-      companyId,
-      search,
-      primaryContactEmail,
-      primaryContactPhone,
-      skip = '0',
-      take = '10',
-    } = query;
+  async getAllClients(
+    query: GetClientsDto,
+    companyId: number,
+    skip: number,
+    take: number,
+  ) {
+    const { search, primaryContactEmail, primaryContactPhone } = query;
 
-    const skipInt = parseInt(skip as string, 10);
-    const takeInt = parseInt(take as string, 10);
-    const companyIdInt = parseInt(companyId, 10);
+    const where: any = { companyId };
 
-    const where: any = { companyId: companyIdInt };
+    console.log({ companyId });
 
     if (search) {
       where.OR = [
@@ -53,8 +49,8 @@ export class ClientsService {
     const [clients, total] = await Promise.all([
       this.prisma.client.findMany({
         where,
-        skip: skipInt,
-        take: takeInt,
+        skip,
+        take,
         orderBy: { name: 'asc' },
       }),
       this.prisma.client.count({ where }),
@@ -63,13 +59,13 @@ export class ClientsService {
     return {
       data: clients,
       total,
-      skip: skipInt,
-      take: takeInt,
+      skip,
+      take,
     };
   }
 
-  async createClient(createClientDto: CreateClientDto) {
-    const { companyId, ...clientData } = createClientDto;
+  async createClient(createClientDto: CreateClientDto, companyId: number) {
+    const { ...clientData } = createClientDto;
 
     try {
       const companyExists = await this.prisma.company.findUnique({

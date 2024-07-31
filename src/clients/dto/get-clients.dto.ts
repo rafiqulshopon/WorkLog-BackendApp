@@ -1,10 +1,6 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class GetClientsDto {
-  @IsNotEmpty()
-  @IsString()
-  companyId: string;
-
   @IsOptional()
   @IsString()
   search?: string;
@@ -16,12 +12,4 @@ export class GetClientsDto {
   @IsOptional()
   @IsString()
   primaryContactPhone?: string;
-
-  @IsOptional()
-  @IsString()
-  skip?: string;
-
-  @IsOptional()
-  @IsString()
-  take?: string;
 }
